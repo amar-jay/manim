@@ -6,10 +6,8 @@ import OpenGL.GL as gl
 from PIL import Image
 
 from manimlib.camera.camera_frame import CameraFrame
-from manimlib.constants import ASPECT_RATIO
 from manimlib.constants import BLACK
-from manimlib.constants import DEFAULT_FPS
-from manimlib.constants import DEFAULT_PIXEL_HEIGHT, DEFAULT_PIXEL_WIDTH
+from manimlib.constants import DEFAULT_RESOLUTION
 from manimlib.constants import FRAME_HEIGHT
 from manimlib.constants import FRAME_WIDTH
 from manimlib.mobject.mobject import Mobject
@@ -30,10 +28,9 @@ class Camera(object):
         window: Optional[Window] = None,
         background_image: Optional[str] = None,
         frame_config: dict = dict(),
-        pixel_width: int = DEFAULT_PIXEL_WIDTH,
-        pixel_height: int = DEFAULT_PIXEL_HEIGHT,
-        fps: int = DEFAULT_FPS,
-        # Note: frame height and width will be resized to match the pixel aspect ratio
+        # Note: frame height and width will be resized to match this resolution aspect ratio
+        resolution=DEFAULT_RESOLUTION,
+        fps: int = 30,
         background_color: ManimColor = BLACK,
         background_opacity: float = 1.0,
         # Points in vectorized mobjects with norm greater
@@ -48,9 +45,9 @@ class Camera(object):
         # to set samples to be greater than 0.
         samples: int = 0,
     ):
-        self.background_image = background_image
         self.window = window
-        self.default_pixel_shape = (pixel_width, pixel_height)
+        self.background_image = background_image
+        self.default_pixel_shape = resolution  # Rename?
         self.fps = fps
         self.max_allowable_norm = max_allowable_norm
         self.image_mode = image_mode
@@ -127,7 +124,7 @@ class Camera(object):
     def clear(self) -> None:
         self.fbo.clear(*self.background_rgba)
         if self.window:
-            self.window.clear()
+            self.window.clear(*self.background_rgba)
 
     def blit(self, src_fbo, dst_fbo):
         """
@@ -221,8 +218,8 @@ class Camera(object):
             frame_height = frame_width / aspect_ratio
         else:
             frame_width = aspect_ratio * frame_height
-        self.frame.set_height(frame_height, stretch=true)
-        self.frame.set_width(frame_width, stretch=true)
+        self.frame.set_height(frame_height, stretch=True)
+        self.frame.set_width(frame_width, stretch=True)
 
     # Rendering
     def capture(self, *mobjects: Mobject) -> None:

@@ -7,7 +7,7 @@ import numpy as np
 import itertools as it
 
 from manimlib.constants import BLACK, BLUE, BLUE_D, BLUE_E, GREEN, GREY_A, WHITE, RED
-from manimlib.constants import DEGREES, PI
+from manimlib.constants import DEG, PI
 from manimlib.constants import DL, UL, DOWN, DR, LEFT, ORIGIN, OUT, RIGHT, UP
 from manimlib.constants import FRAME_X_RADIUS, FRAME_Y_RADIUS
 from manimlib.constants import MED_SMALL_BUFF, SMALL_BUFF
@@ -45,6 +45,12 @@ DEFAULT_X_RANGE = (-8.0, 8.0, 1.0)
 DEFAULT_Y_RANGE = (-4.0, 4.0, 1.0)
 
 
+def full_range_specifier(range_args):
+    if len(range_args) == 2:
+        return (*range_args, 1)
+    return range_args
+
+
 class CoordinateSystem(ABC):
     """
     Abstract class for Axes and NumberPlane
@@ -57,8 +63,8 @@ class CoordinateSystem(ABC):
         y_range: RangeSpecifier = DEFAULT_Y_RANGE,
         num_sampled_graph_points_per_tick: int = 5,
     ):
-        self.x_range = x_range
-        self.y_range = y_range
+        self.x_range = full_range_specifier(x_range)
+        self.y_range = full_range_specifier(y_range)
         self.num_sampled_graph_points_per_tick = num_sampled_graph_points_per_tick
 
     @abstractmethod
@@ -301,7 +307,7 @@ class CoordinateSystem(ABC):
 
         point = self.input_to_graph_point(x, graph)
         angle = self.angle_of_tangent(x, graph)
-        normal = rotate_vector(RIGHT, angle + 90 * DEGREES)
+        normal = rotate_vector(RIGHT, angle + 90 * DEG)
         if normal[1] < 0:
             normal *= -1
         label.next_to(point, normal, buff=buff)
@@ -399,7 +405,7 @@ class CoordinateSystem(ABC):
             stroke_width=stroke_width,
             stroke_color=stroke_color,
             fill_opacity=fill_opacity,
-            stroke_background=stroke_background
+            stroke_behind=stroke_background
         )
         for rect in result:
             if not rect.positive:
@@ -468,7 +474,7 @@ class Axes(VGroup, CoordinateSystem):
             ),
             length=height,
         )
-        self.y_axis.rotate(90 * DEGREES, about_point=ORIGIN)
+        self.y_axis.rotate(90 * DEG, about_point=ORIGIN)
         # Add as a separate group in case various other
         # mobjects are added to self, as for example in
         # NumberPlane below
@@ -536,7 +542,7 @@ class ThreeDAxes(Axes):
     ):
         Axes.__init__(self, x_range, y_range, **kwargs)
 
-        self.z_range = z_range
+        self.z_range = full_range_specifier(z_range)
         self.z_axis = self.create_axis(
             self.z_range,
             axis_config=merge_dicts_recursively(

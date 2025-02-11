@@ -12,8 +12,8 @@ import moderngl
 import numbers
 import numpy as np
 
-from manimlib.constants import DEFAULT_MOBJECT_TO_EDGE_BUFFER
-from manimlib.constants import DEFAULT_MOBJECT_TO_MOBJECT_BUFFER
+from manimlib.constants import DEFAULT_MOBJECT_TO_EDGE_BUFF
+from manimlib.constants import DEFAULT_MOBJECT_TO_MOBJECT_BUFF
 from manimlib.constants import DOWN, IN, LEFT, ORIGIN, OUT, RIGHT, UP
 from manimlib.constants import FRAME_X_RADIUS, FRAME_Y_RADIUS
 from manimlib.constants import MED_SMALL_BUFF
@@ -307,11 +307,14 @@ class Mobject(object):
                 parent.refresh_bounding_box()
         return self
 
-    # Others related to points
-
+    @affects_data
     def match_points(self, mobject: Mobject) -> Self:
-        self.set_points(mobject.get_points())
+        self.resize_points(len(mobject.data), resize_func=resize_preserving_order)
+        for key in self.pointlike_data_keys:
+            self.data[key][:] = mobject.data[key]
         return self
+
+    # Others related to points
 
     def get_points(self) -> Vect3Array:
         return self.data["point"]
@@ -715,21 +718,6 @@ class Mobject(object):
         self.become(self.saved_state)
         return self
 
-    def save_to_file(self, file_path: str) -> Self:
-        with open(file_path, "wb") as fp:
-            fp.write(self.serialize())
-        log.info(f"Saved mobject to {file_path}")
-        return self
-
-    @staticmethod
-    def load(file_path) -> Mobject:
-        if not os.path.exists(file_path):
-            log.error(f"No file found at {file_path}")
-            sys.exit(2)
-        with open(file_path, "rb") as fp:
-            mobject = pickle.load(fp)
-        return mobject
-
     def become(self, mobject: Mobject, match_updaters=False) -> Self:
         """
         Edit all data and submobjects to be idential
@@ -857,6 +845,7 @@ class Mobject(object):
         if call:
             self.update(dt=0)
         self.refresh_has_updater_status()
+        self.update()
         return self
 
     def insert_updater(self, update_func: Updater, index=0):
@@ -1070,7 +1059,7 @@ class Mobject(object):
     def align_on_border(
         self,
         direction: Vect3,
-        buff: float = DEFAULT_MOBJECT_TO_EDGE_BUFFER
+        buff: float = DEFAULT_MOBJECT_TO_EDGE_BUFF
     ) -> Self:
         """
         Direction just needs to be a vector pointing towards side or
@@ -1086,14 +1075,14 @@ class Mobject(object):
     def to_corner(
         self,
         corner: Vect3 = LEFT + DOWN,
-        buff: float = DEFAULT_MOBJECT_TO_EDGE_BUFFER
+        buff: float = DEFAULT_MOBJECT_TO_EDGE_BUFF
     ) -> Self:
         return self.align_on_border(corner, buff)
 
     def to_edge(
         self,
         edge: Vect3 = LEFT,
-        buff: float = DEFAULT_MOBJECT_TO_EDGE_BUFFER
+        buff: float = DEFAULT_MOBJECT_TO_EDGE_BUFF
     ) -> Self:
         return self.align_on_border(edge, buff)
 
@@ -1101,7 +1090,7 @@ class Mobject(object):
         self,
         mobject_or_point: Mobject | Vect3,
         direction: Vect3 = RIGHT,
-        buff: float = DEFAULT_MOBJECT_TO_MOBJECT_BUFFER,
+        buff: float = DEFAULT_MOBJECT_TO_MOBJECT_BUFF,
         aligned_edge: Vect3 = ORIGIN,
         submobject_to_align: Mobject | None = None,
         index_of_submobject_to_align: int | slice | None = None,
@@ -1132,7 +1121,7 @@ class Mobject(object):
         space_lengths = [FRAME_X_RADIUS, FRAME_Y_RADIUS]
         for vect in UP, DOWN, LEFT, RIGHT:
             dim = np.argmax(np.abs(vect))
-            buff = kwargs.get("buff", DEFAULT_MOBJECT_TO_EDGE_BUFFER)
+            buff = kwargs.get("buff", DEFAULT_MOBJECT_TO_EDGE_BUFF)
             max_val = space_lengths[dim] - buff
             edge_center = self.get_edge_center(vect)
             if np.dot(edge_center, vect) > max_val:
@@ -1950,12 +1939,14 @@ class Mobject(object):
     def set_clip_plane(
         self,
         vect: Vect3 | None = None,
-        threshold: float | None = None
+        threshold: float | None = None,
+        recurse=True
     ) -> Self:
-        if vect is not None:
-            self.uniforms["clip_plane"][:3] = vect
-        if threshold is not None:
-            self.uniforms["clip_plane"][3] = threshold
+        for submob in self.get_family(recurse):
+            if vect is not None:
+                submob.uniforms["clip_plane"][:3] = vect
+            if threshold is not None:
+                submob.uniforms["clip_plane"][3] = threshold
         return self
 
     def deactivate_clip_plane(self) -> Self:

@@ -1,21 +1,18 @@
 from __future__ import annotations
 
 import math
-import numbers
 
 import numpy as np
 
 from manimlib.constants import DL, DOWN, DR, LEFT, ORIGIN, OUT, RIGHT, UL, UP, UR
 from manimlib.constants import GREY_A, RED, WHITE, BLACK
 from manimlib.constants import MED_SMALL_BUFF, SMALL_BUFF
-from manimlib.constants import DEGREES, PI, TAU
+from manimlib.constants import DEG, PI, TAU
 from manimlib.mobject.mobject import Mobject
 from manimlib.mobject.types.vectorized_mobject import DashedVMobject
 from manimlib.mobject.types.vectorized_mobject import VGroup
 from manimlib.mobject.types.vectorized_mobject import VMobject
-from manimlib.utils.bezier import bezier
 from manimlib.utils.bezier import quadratic_bezier_points_for_arc
-from manimlib.utils.bezier import partial_quadratic_bezier_points
 from manimlib.utils.iterables import adjacent_n_tuples
 from manimlib.utils.iterables import adjacent_pairs
 from manimlib.utils.simple_functions import clip
@@ -30,7 +27,6 @@ from manimlib.utils.space_ops import normalize
 from manimlib.utils.space_ops import rotate_vector
 from manimlib.utils.space_ops import rotation_matrix_transpose
 from manimlib.utils.space_ops import rotation_between_vectors
-from manimlib.utils.space_ops import rotation_about_z
 
 from typing import TYPE_CHECKING
 
@@ -987,7 +983,7 @@ class RegularPolygon(Polygon):
     ):
         # Defaults to 0 for odd, 90 for even
         if start_angle is None:
-            start_angle = (n % 2) * 90 * DEGREES
+            start_angle = (n % 2) * 90 * DEG
         start_vect = rotate_vector(radius * RIGHT, start_angle)
         vertices = compass_directions(n, start_vect)
         super().__init__(*vertices, **kwargs)

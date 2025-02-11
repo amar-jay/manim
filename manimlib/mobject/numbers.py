@@ -14,7 +14,8 @@ from manimlib.utils.bezier import interpolate
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import TypeVar
+    from typing import TypeVar, Callable
+    from manimlib.mobject.mobject import Mobject
     from manimlib.typing import ManimColor, Vect3, Self
 
     T = TypeVar("T", bound=VMobject)
@@ -22,7 +23,12 @@ if TYPE_CHECKING:
 
 @lru_cache()
 def char_to_cahced_mob(char: str, **text_config):
-    return Text(char, **text_config)
+    if "\\" in char:
+        # This is for when the "character" is a LaTeX command
+        # like ^\circ or \dots
+        return Tex(char, **text_config)
+    else:
+        return Text(char, **text_config)
 
 
 class DecimalNumber(VMobject):

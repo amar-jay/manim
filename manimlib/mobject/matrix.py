@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-import itertools as it
-
 import numpy as np
 
 from manimlib.constants import DOWN, LEFT, RIGHT, ORIGIN
-from manimlib.constants import DEGREES
+from manimlib.constants import DEG
 from manimlib.mobject.numbers import DecimalNumber
 from manimlib.mobject.svg.tex_mobject import Tex
 from manimlib.mobject.types.vectorized_mobject import VGroup
@@ -14,7 +12,7 @@ from manimlib.mobject.types.vectorized_mobject import VMobject
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import Sequence, Union, Tuple, Optional
+    from typing import Sequence, Union, Optional
     from manimlib.typing import ManimColor, Vect3, VectNArray, Self
 
     StringMatrixType = Union[Sequence[Sequence[str]], np.ndarray[int, np.dtype[np.str_]]]
@@ -198,7 +196,7 @@ class Matrix(VMobject):
                 dots.set_width(hdots_width)
                 self.swap_entry_for_dots(row[col_index], dots)
         if use_vdots and use_hdots:
-            rows[row_index][col_index].rotate(-45 * DEGREES)
+            rows[row_index][col_index].rotate(-45 * DEG)
         return self
 
     def get_mob_matrix(self) -> VMobjectMatrixType:
